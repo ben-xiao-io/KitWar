@@ -1,0 +1,10 @@
+main: com.benoolean.KitWar.KitWar
+name: KitWar
+version: 1.0
+author: benoolean
+api-version: 1.16
+description: Minigame night!
+
+commands:
+  kit:
+    description: Receive a kit

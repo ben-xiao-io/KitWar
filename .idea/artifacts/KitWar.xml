@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="KitWar">
+    <output-path>$PROJECT_DIR$/../../Servers/minigame/plugins</output-path>
+    <root id="archive" name="KitWar.jar">
+      <element id="module-output" name="KitWar" />
+    </root>
+  </artifact>
+</component>

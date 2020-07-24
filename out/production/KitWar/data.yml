@@ -1,0 +1,74 @@
+kitNames:
+  - Boomer
+  - Electro
+kits:
+  Boomer:
+    name: Boomer
+    abilities:
+      passive: Hitting an ability gives a chance to spawn a suicide bomb zombie that
+        follows target around.
+      ability1:
+        name: Explosive Egg
+        description: Eggs that instantly explodes when landing and instantly deals
+          damage.
+        cooldown: 1500
+        damage: 4
+        equipment:
+          v: 2567
+          type: EGG
+          meta:
+            ==: ItemMeta
+            meta-type: UNSPECIFIC
+            lore:
+              - Explosive Eggs
+              - Eggs that instantly explodes when landing and instantly deals damage.
+              - Deals 4 Hearts
+      ability2:
+        name: Mega Bomb
+        description: A TNT bomb that denotes after sometime, but it deals huge damage.
+        cooldown: 5000
+        damage: 10
+        equipment:
+          v: 2567
+          type: TNT
+          meta:
+            ==: ItemMeta
+            meta-type: UNSPECIFIC
+            lore:
+              - Mega Bomb
+              - A TNT bomb that denotes after sometime, but it deals huge damage.
+              - Deals 10 Hearts
+  Electro:
+    name: Electro
+    abilities:
+      passive: Striking an enemy with lightning slows them.
+      ability1:
+        name: Tesla Coil
+        description: Summon a power tesla coil that repetitively hits all enemys with powerful lightning.
+        cooldown: 6000
+        damage: 4
+        equipment:
+          v: 2567
+          type: END_ROD
+          meta:
+            ==: ItemMeta
+            meta-type: UNSPECIFIC
+            lore:
+              - Tesla Coil
+              - Summon a power tesla coil that repetitively hits all enemys with powerful lightning.
+              - Deals 4 Hearts
+      ability2:
+        name: Stun Gun
+        description: Shoots a beam that stuns any player hit.
+        cooldown: 4000
+        damage: 4
+        equipment:
+          v: 2567
+          type: STICK
+          meta:
+            ==: ItemMeta
+            meta-type: UNSPECIFIC
+            lore:
+              - Stun Gun
+              - Shoots a beam that stuns any player hit.
+              - Deals 4 Hearts
