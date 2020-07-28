@@ -19,11 +19,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class GameLogic implements Listener {
 
     private KitWar plugin = KitWar.getInstance();
-    private KitData kitData = KitWar.kitData;
 
     public static HashMap<Player, Long> playerAbility1Cooldown = new HashMap<>();
     public static HashMap<Player, Long> playerAbility2Cooldown = new HashMap<>();
-    public static HashMap<Player, Long> playerLastUsedAbilityCooldown = new HashMap<>();
+    public static HashMap<Player, KitData.Ability> playerLastAttemptedAbility = new HashMap<>();
     public static HashMap<Player, String> PlayerKitMap = new HashMap<>();
 
     public GameLogic() {
@@ -57,34 +56,36 @@ public class GameLogic implements Listener {
             public void run() {
                 for(Player player : playerList) {
                     int inactiveAbilityNum = player.getInventory().getHeldItemSlot();
-                    HashMap<Player, Long> playerAbilityCooldown =
-                            ((inactiveAbilityNum == 0) ? playerAbility1Cooldown :
-                                    (inactiveAbilityNum == 1) ? playerAbility2Cooldown : playerLastUsedAbilityCooldown);
+                    if (playerLastAttemptedAbility.containsKey(player)) {
+                        KitData.Ability ability = playerLastAttemptedAbility.get(player);
+                        int abilityNum = ability.abilityNum;
+                        if (abilityNum == 1 || abilityNum == 2) {
+                            HashMap<Player, Long> playerAbilityCooldown = abilityNum == 1 ? playerAbility1Cooldown : playerAbility2Cooldown;
 
-                    // action bar'
-                    if (playerLastUsedAbilityCooldown.containsKey(player)) {
-                        long timeDelta = 0;
-                        timeDelta = (System.currentTimeMillis() - playerAbilityCooldown.get(player));
+                            long timeDelta = 0;
+                            timeDelta = (System.currentTimeMillis() - playerAbilityCooldown.get(player));
 
-                        KitData.Kit kit = kitData.getPlayerKit(player);
-                        long cooldown = kit.getAbility(1).cooldown; // find a way to make this dyanmic instead of just 1
-                        sendAbilityCoolDownActionBar(player, timeDelta, cooldown);
+                            long cooldown = ability.cooldown;
+                            sendAbilityCoolDownActionBar(player, ability, timeDelta, cooldown);
+                        }
                     }
                 }
             }
         }.runTaskTimerAsynchronously(plugin, 0,2);
     }
 
-    public static void usedAbility(Player player, int abilityNum) {
-        if (abilityNum == 1) {
-            playerAbility1Cooldown.put(player, System.currentTimeMillis());
-        }
-        else if (abilityNum == 2) {
-            playerAbility2Cooldown.put(player, System.currentTimeMillis());
-        }
-        playerLastUsedAbilityCooldown.put(player, System.currentTimeMillis());
+    public static void attemptAbility(Player player, KitData.Ability ability, boolean sucessful) {
+        playerLastAttemptedAbility.put(player, KitWar.kitData.getKitAbility(PlayerKitMap.get(player), ability.abilityNum));
 
-        player.sendMessage(ChatColor.GREEN + (abilityNum == 1 ? "First" : "Second") + " activated!");
+        if (sucessful) {
+            useAbility(player, ability);
+        }
+    }
+
+    public static void useAbility(Player player, KitData.Ability ability) {
+        HashMap<Player, Long> playerAbilityCooldown = ability.abilityNum == 1 ? playerAbility1Cooldown : playerAbility2Cooldown;
+        playerAbilityCooldown.put(player, System.currentTimeMillis());
+        player.sendMessage(ChatColor.GREEN + (ability.abilityNum == 1 ? "First" : "Second") + " activated!");
     }
 
     public static boolean abilityIsUnderCooldown(Player player, int abilityNum) {
@@ -148,9 +149,9 @@ public class GameLogic implements Listener {
     //							   //
     /////////////////////////////////
 
-    public void sendAbilityCoolDownActionBar(Player player, long timeDelta, long cooldown) {
+    public void sendAbilityCoolDownActionBar(Player player, KitData.Ability ability, long timeDelta, long cooldown) {
         if (timeDelta >= cooldown) {
-            String abilityReady = ChatColor.GREEN + "" + ChatColor.BOLD + "Ability READY";
+            String abilityReady = ChatColor.GREEN + "" + ChatColor.BOLD + ability.name + " READY";
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(abilityReady));
             return;
         }

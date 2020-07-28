@@ -25,13 +25,15 @@ public class KitData {
 
     class Ability {
         public String name;
+        public int abilityNum;
         public String description;
         public long cooldown;
         public long damage;
         public ItemStack equipment;
 
-        public Ability(String name, String description, long cooldown, long damage, ItemStack equipment) {
+        public Ability(String name, int abilityNum, String description, long cooldown, long damage, ItemStack equipment) {
             this.name = name;
+            this.abilityNum=  abilityNum;
             this.description = description;
             this.cooldown = cooldown;
             this.damage = damage;
@@ -107,7 +109,7 @@ public class KitData {
                         }
 
                         // initializing ability
-                        Ability ability = new Ability(abilityName, description, cooldown, damage, equipment);
+                        Ability ability = new Ability(abilityName, abilityNum, description, cooldown, damage, equipment);
 
                         // add ability to kit
                         kit.abilities.add(ability);

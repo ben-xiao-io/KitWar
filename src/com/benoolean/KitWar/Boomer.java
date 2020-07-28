@@ -34,17 +34,9 @@ public class Boomer implements Listener {
     private KitWar plugin = KitWar.getInstance();
     private KitData kitData = KitWar.kitData;
 
-    private static double ability1Damage;
-    private static double ability2Damage;
+    private KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
+    private KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
 
-
-    public Boomer() {
-        KitData.Ability ability1 = kitData.getKitAbility(kitName, 1);
-        KitData.Ability ability2 = kitData.getKitAbility(kitName, 2);
-
-        ability1Damage = ability1.damage;
-        ability2Damage = ability2.damage;
-    }
 
     @EventHandler
     public void boomerEggBombThrow(PlayerInteractEvent event) {
@@ -54,11 +46,12 @@ public class Boomer implements Listener {
                 if (player.getInventory().getItemInMainHand().getType() == Material.EGG) {
 
                     if (GameLogic.abilityIsUnderCooldown(player, 1)) {
+                        GameLogic.attemptAbility(player, this.ability1, false);
                         event.setCancelled(true);
                         return;
                     }
 
-                    GameLogic.usedAbility(player, 1);
+                    GameLogic.attemptAbility(player, this.ability1, true);
                 }
             }
         }
@@ -95,14 +88,14 @@ public class Boomer implements Listener {
 
                             victim.setVelocity(launchVector);
                             victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 1));
-                            victim.damage(ability1Damage, player);
-                            victim.setLastDamage(ability1Damage);
+                            victim.damage(this.ability1.damage, player);
+                            victim.setLastDamage(this.ability1.damage);
 
                             // spawn creeper
                             int randomNum = ThreadLocalRandom.current().nextInt(1, 10 + 1);
                             player.sendMessage(Integer.toString(randomNum));
                             if (randomNum <= 3 || true) {
-                                spawnTntZombie(player, victim, eggLoc, 100, ability1Damage);
+                                spawnTntZombie(player, victim, eggLoc, 100, this.ability1.damage);
                             }
                         }
                     }
@@ -122,15 +115,16 @@ public class Boomer implements Listener {
             if (block.getType() == Material.TNT) {
 
                 if (GameLogic.abilityIsUnderCooldown(player, 2)) {
+                    GameLogic.attemptAbility(player, this.ability2, false);
                     event.setCancelled(true);
                     return;
                 }
-                GameLogic.usedAbility(player, 2);
 
                 block.setType(Material.AIR);
                 Location blockLoc = block.getLocation();
 
-                spawnTnt(player,blockLoc, 40, ability2Damage);
+                spawnTnt(player,blockLoc, 40, this.ability2.damage);
+                GameLogic.attemptAbility(player, this.ability2, true);
             }
         }
     }

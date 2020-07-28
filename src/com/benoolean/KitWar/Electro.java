@@ -30,7 +30,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Electro implements Listener {
 
-    private static String kitName = "electro";
+    private static String kitName = "Electro";
 
     @EventHandler
     public void zapClick(PlayerInteractEvent event) {
