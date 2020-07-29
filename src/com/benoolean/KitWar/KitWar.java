@@ -51,12 +51,12 @@ public class KitWar extends JavaPlugin implements Listener {
                 Player player = (Player) sender;
 
                 if (args.length == 0) {
-                    chatClear(player);
+                    ChatClear(player);
 
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Choose a kit!");
                     Set<String> kitNames = kitData.kitMap.keySet();
 
-                    printSeperatorLine(player, true);
+                    PrintSeperatorLine(player, true);
                     for (String kitName: kitNames) {
                         TextComponent messageKit = new TextComponent("▶  " + kitName + "  ◀");
                         messageKit.setColor(ChatColor.GOLD);
@@ -65,13 +65,13 @@ public class KitWar extends JavaPlugin implements Listener {
                         messageKit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to get the " + kitName.toUpperCase() +" kit")));
                         player.spigot().sendMessage(messageKit);
                     }
-                    printSeperatorLine(player, false);
+                    PrintSeperatorLine(player, false);
                 }
                 else if (args.length == 1) {
                     String kitArg = args[0];
 
                     if (kitData.kitNameExists(kitArg)) {
-                        GameLogic.equipKit(player, kitArg);
+                        GameLogic.EquipKit(player, kitArg);
                     }
                 }
             }
@@ -93,13 +93,13 @@ public class KitWar extends JavaPlugin implements Listener {
     /////////////////////////////////
 
 
-    public void chatClear(Player player) {
+    public static void ChatClear(Player player) {
         for (int i = 0; i < 30; i++) {
             player.sendMessage("");
         }
     }
 
-    public void printSeperatorLine(Player player, boolean startHeader) {
+    public static void PrintSeperatorLine(Player player, boolean startHeader) {
         if (startHeader) {
             player.sendMessage("▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃");
             player.sendMessage("");

@@ -7,10 +7,12 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.logging.Level;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -91,6 +93,7 @@ public class KitData {
                     // configuring abilites and passive
                     ConfigurationSection abilities = this.getConfig().getConfigurationSection("kits." + kitName + ".abilities");
                     String passive = abilities.getString("passive");
+                    kit.passiveDescription = passive;
 
                     for (int abilityNum = 1; abilityNum<3; abilityNum++) {
                         ConfigurationSection abilityConfig = this.getConfig().getConfigurationSection(
@@ -104,7 +107,7 @@ public class KitData {
                         ConfigurationSection equipmentSection = abilityConfig.getConfigurationSection("equipment");
                         ItemStack equipment = ItemStack.deserialize(equipmentSection.getValues(true));
 
-                        if (abilityName == null || description == null || cooldown < 0 || damage < 0 || equipment == null ) {
+                        if (passive == null || abilityName == null || description == null || cooldown < 0 || damage < 0 || equipment == null ) {
                             throw new NullPointerException();
                         }
 

@@ -1,7 +1,6 @@
 package com.benoolean.KitWar;
 
 import java.util.Collection;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -20,7 +19,6 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -39,66 +37,35 @@ public class Boomer implements Listener {
 
 
     @EventHandler
-    public void boomerEggBombThrow(PlayerInteractEvent event) {
+    public void EggBombThrow(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (GameLogic.playerKitValidate(player, kitName)) {
+        if (GameLogic.PlayerKitValidate(player, kitName)) {
             if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
                 if (player.getInventory().getItemInMainHand().getType() == Material.EGG) {
 
-                    if (GameLogic.abilityIsUnderCooldown(player, 1)) {
-                        GameLogic.attemptAbility(player, this.ability1, false);
-                        event.setCancelled(true);
-                        return;
-                    }
-
-                    GameLogic.attemptAbility(player, this.ability1, true);
+                    GameLogic.AttemptAbility(player, this.ability1, GameLogic.AbilityIsUnderCooldown(player, 1));
+                    String test = GameLogic.AbilityIsUnderCooldown(player, 1) ? "true" : "false";
+                    player.sendMessage(test);
                 }
             }
         }
     }
 
     @EventHandler
-    public void boomerEggBombHit(ProjectileHitEvent event) {
+    public void EggBombHit(ProjectileHitEvent event) {
         if(event.getEntity().getShooter() instanceof Player) {
             if (event.getEntity().getType().equals(EntityType.EGG)) {
 
                 Player player = (Player) event.getEntity().getShooter();
 
-                if (GameLogic.playerKitValidate(player, kitName)) {
+                if (GameLogic.PlayerKitValidate(player, kitName)) {
                     Egg egg = (Egg) event.getEntity();
                     Location eggLoc = egg.getLocation();
 
                     player.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, eggLoc, 0);
                     player.getWorld().playSound(eggLoc, Sound.ENTITY_GENERIC_EXPLODE, 3.0F, 0.533F);
 
-                    Collection<Entity> nearByEntities = egg.getWorld().getNearbyEntities(eggLoc, 3, 3, 3);
-                    nearByEntities.remove((Entity) player);
-
-                    for (Entity entity : nearByEntities) {
-                        if (entity instanceof Player) {
-                            Player victim = (Player) entity;
-
-                            Location victimLoc = victim.getLocation();
-
-                            double launchVelocityX =  player.getLocation().getX() - victimLoc.getX();
-                            double launchVelocityZ = player.getLocation().getZ() - victimLoc.getZ();
-
-                            Vector launchVector = new Vector(launchVelocityX, 0, launchVelocityZ).normalize().multiply(2);
-                            launchVector.setY(0.6F);
-
-                            victim.setVelocity(launchVector);
-                            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 1));
-                            victim.damage(this.ability1.damage, player);
-                            victim.setLastDamage(this.ability1.damage);
-
-                            // spawn creeper
-                            int randomNum = ThreadLocalRandom.current().nextInt(1, 10 + 1);
-                            player.sendMessage(Integer.toString(randomNum));
-                            if (randomNum <= 3 || true) {
-                                spawnTntZombie(player, victim, eggLoc, 100, this.ability1.damage);
-                            }
-                        }
-                    }
+                    Explode(player, egg, 3F, ability1.damage);
                 }
             }
         }
@@ -107,68 +74,22 @@ public class Boomer implements Listener {
     }
 
     @EventHandler
-    public void boomerTntPlace(BlockPlaceEvent event) {
+    public void TntPlace(BlockPlaceEvent event) {
         Block block = event.getBlock();
         Player player = event.getPlayer();
 
-        if (GameLogic.playerKitValidate(player, kitName)) {
+        if (GameLogic.PlayerKitValidate(player, kitName)) {
             if (block.getType() == Material.TNT) {
-
-                if (GameLogic.abilityIsUnderCooldown(player, 2)) {
-                    GameLogic.attemptAbility(player, this.ability2, false);
-                    event.setCancelled(true);
-                    return;
-                }
-
                 block.setType(Material.AIR);
                 Location blockLoc = block.getLocation();
 
-                spawnTnt(player,blockLoc, 40, this.ability2.damage);
-                GameLogic.attemptAbility(player, this.ability2, true);
+                SpawnTnt(player,blockLoc, 40, this.ability2.damage);
+                GameLogic.AttemptAbility(player, this.ability2, GameLogic.AbilityIsUnderCooldown(player, 2));
             }
         }
     }
 
-    @EventHandler
-    public void boomerEntityDamage(EntityDamageByEntityEvent event) {
-        Entity attacker = event.getDamager();
-        Entity victim = event.getEntity();
-
-        if (attacker instanceof Player && victim instanceof Player) {
-            Player playerAttacker = (Player) attacker;
-            Player playerVictim = (Player) victim;
-
-            double damageDealt = playerVictim.getLastDamage();
-            double victimHealth = playerVictim.getHealth();
-
-            playerAttacker.sendMessage("HP:" + Double.toString(victimHealth) + " DMG:" + Double.toString(damageDealt));
-
-            playerAttacker.sendMessage("You hurt a " + victim.getName());
-            if (damageDealt >= victimHealth) {
-                playerAttacker.sendMessage("You blown up a " + victim.getName());
-            }
-        }
-        return;
-    }
-
-    @EventHandler
-    public void chickenSpawnEgg(CreatureSpawnEvent event) {
-        if (event.getSpawnReason() == SpawnReason.EGG) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void disableZombieDamage(EntityDamageByEntityEvent event) {
-        Entity attacker = event.getDamager();
-        Entity victim = event.getEntity();
-
-        if (attacker instanceof Zombie && victim instanceof Player) {
-            event.setCancelled(true);
-        }
-    }
-
-    public void spawnTnt(Player player, Location placedLoc, int tntTicks, double tntDamage) {
+    public void SpawnTnt(Player player, Location placedLoc, int tntTicks, double tntDamage) {
         final Entity tnt = player.getWorld().spawn(placedLoc, TNTPrimed.class);
 
         tnt.setCustomNameVisible(true);
@@ -185,7 +106,7 @@ public class Boomer implements Listener {
 
                 if (ticks <= 0) {
                     if (!(tnt.isDead())) {
-                        tntExplode(player, tnt, tnt.getLocation(), tntDamage);
+                        Explode(player, tnt, 5F, tntDamage);
                         tnt.remove();
                     }
 
@@ -196,7 +117,7 @@ public class Boomer implements Listener {
         }.runTaskTimer(KitWar.getInstance(), 0, 1);
     }
 
-    public void spawnTntZombie(Player player, Player victim, Location eggLoc, int tntTicks, double tntDamage) {
+    public void SpawnTntZombiePassive(Player player, Player victim, int tntTicks, double tntDamage) {
         final Zombie zombie = (Zombie) victim.getWorld().spawnEntity(victim.getLocation(), EntityType.ZOMBIE);
 
         zombie.setTarget(victim);
@@ -221,7 +142,7 @@ public class Boomer implements Listener {
 
                 if (ticks <= 0) {
                     if (!(zombie.isDead())) {
-                        tntExplode(player, zombie, zombie.getLocation(), tntDamage);
+                        Explode(player, zombie, 5F, tntDamage);
                         zombie.remove();
                     }
 
@@ -232,13 +153,23 @@ public class Boomer implements Listener {
         }.runTaskTimer(KitWar.getInstance(), 0, 1);
     }
 
-    public void tntExplode(Player player, Entity tnt, Location loc, double tntDamage) {
+    public void Explode(Player player, Entity explosiveEntity, double radius, double tntDamage) {
 
-        player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, loc, 0);
-        player.getWorld().playSound(loc, Sound.ENTITY_DRAGON_FIREBALL_EXPLODE, 3.0F, 0.533F);
+        Location loc = explosiveEntity.getLocation();
 
-        Collection<Entity> nearByEntities = tnt.getWorld().getNearbyEntities(tnt.getLocation(), 5, 5, 5);
-        nearByEntities.remove(player);
+        if (radius <= 3) {
+            player.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, loc, 0);
+        }
+        else {
+            player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, loc, 0);
+        }
+
+        player.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 3.0F, 0.533F);
+
+        int playerHit = 0;
+        double velocityMultiplier = 1F;
+        Collection<Entity> nearByEntities = explosiveEntity.getWorld().getNearbyEntities(explosiveEntity.getLocation(), radius, radius, radius);
+        // nearByEntities.remove(player);
         for (Entity entity : nearByEntities) {
             if (entity instanceof Player) {
                 Player victim = (Player) entity;
@@ -247,14 +178,40 @@ public class Boomer implements Listener {
                 double launchVelocityX = victimLoc.getX() - loc.getX();
                 double launchVelocityZ = victimLoc.getZ() - loc.getZ();
 
-                Vector launchVector = new Vector(launchVelocityX, 0, launchVelocityZ).normalize().multiply(2);
-                launchVector.normalize().multiply(1.5F);
-                launchVector.setY(0.6F);
+                Vector launchVector = new Vector(launchVelocityX, 0, launchVelocityZ).normalize().multiply(velocityMultiplier);
+                launchVector.normalize().multiply(velocityMultiplier);
+                launchVector.setY(0.8F);
+                victim.sendMessage(Double.toString(launchVelocityX) + "    " + Double.toString(launchVelocityZ));
 
-                victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 255));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 1));
                 victim.damage(tntDamage, player);
                 victim.setLastDamage(tntDamage);
+                if (Double.isFinite(launchVector.getX()) && Double.isFinite(launchVector.getZ())) {
+                    victim.setVelocity(launchVector);
+                }
+
+                 playerHit++;
+                 if (playerHit >= 3 || true) {
+                    SpawnTntZombiePassive(player, victim, 60, 3F);
+                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void EggSpawnDisable(CreatureSpawnEvent event) {
+        if (event.getSpawnReason() == SpawnReason.EGG) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void ZombieDamageDisable(EntityDamageByEntityEvent event) {
+        Entity attacker = event.getDamager();
+        Entity victim = event.getEntity();
+
+        if (attacker instanceof Zombie && victim instanceof Player) {
+            event.setCancelled(true);
         }
     }
 }

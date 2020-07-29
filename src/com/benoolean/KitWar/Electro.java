@@ -18,7 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -31,11 +30,16 @@ import net.md_5.bungee.api.ChatColor;
 public class Electro implements Listener {
 
     private static String kitName = "Electro";
+    private KitWar plugin = KitWar.getInstance();
+    private KitData kitData = KitWar.kitData;
+
+    private KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
+    private KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
 
     @EventHandler
     public void zapClick(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (GameLogic.playerKitValidate(player, kitName)) {
+        if (GameLogic.PlayerKitValidate(player, kitName)) {
             if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
                 // zap
                 if (player.getInventory().getItemInMainHand().getType() == Material.STICK) {
@@ -74,10 +78,11 @@ public class Electro implements Listener {
                                     @Override
                                     public void run() {
                                         if (stuns <= 0 ) {
+                                            victim.damage(ability2.damage, player);
                                             cancel();
                                         }
 
-                                        victim.damage(0.1, player);
+                                        victim.damage(0, player);
                                         victim.setVelocity(new Vector(0,0,0));
                                         victim.getWorld().spawnParticle(Particle.SNOWBALL, victim.getLocation().add(0,2,0), 10);
                                         victim.playSound(victim.getLocation(), Sound.ENTITY_BLAZE_HURT, 3.0F, 0.533F);
@@ -111,7 +116,7 @@ public class Electro implements Listener {
         Block block = event.getBlock();
         Player player = event.getPlayer();
         if (block.getType() == Material.END_ROD) {
-            if (GameLogic.playerKitValidate(player, kitName)) {
+            if (GameLogic.PlayerKitValidate(player, kitName)) {
                 block.setType(Material.AIR);
                 Location turretLoc = block.getLocation().add(0.5,-0.5,0.5);
                 int armorticks = 80;

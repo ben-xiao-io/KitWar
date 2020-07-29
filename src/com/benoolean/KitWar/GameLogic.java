@@ -8,6 +8,7 @@ import java.util.Set;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,7 +27,7 @@ public class GameLogic implements Listener {
     public static HashMap<Player, String> PlayerKitMap = new HashMap<>();
 
     public GameLogic() {
-        coolDownInit(plugin);
+        CoolDownInit(plugin);
     }
 
     /////////////////////////////////
@@ -47,7 +48,7 @@ public class GameLogic implements Listener {
     //							   //
     /////////////////////////////////
 
-    public void coolDownInit(KitWar plugin) {
+    public void CoolDownInit(KitWar plugin) {
         new BukkitRunnable() {
             // note that 2 ticks = 0.1 second = 100 miliseconds
             Set<Player> playerList = PlayerKitMap.keySet();
@@ -66,7 +67,7 @@ public class GameLogic implements Listener {
                             timeDelta = (System.currentTimeMillis() - playerAbilityCooldown.get(player));
 
                             long cooldown = ability.cooldown;
-                            sendAbilityCoolDownActionBar(player, ability, timeDelta, cooldown);
+                            SendAbilityCoolDownActionBar(player, ability, timeDelta, cooldown);
                         }
                     }
                 }
@@ -74,21 +75,21 @@ public class GameLogic implements Listener {
         }.runTaskTimerAsynchronously(plugin, 0,2);
     }
 
-    public static void attemptAbility(Player player, KitData.Ability ability, boolean sucessful) {
+    public static void AttemptAbility(Player player, KitData.Ability ability, boolean abilityIsUnderCoolDown) {
         playerLastAttemptedAbility.put(player, KitWar.kitData.getKitAbility(PlayerKitMap.get(player), ability.abilityNum));
 
-        if (sucessful) {
-            useAbility(player, ability);
+        if (!abilityIsUnderCoolDown) {
+            UseAbility(player, ability);
         }
     }
 
-    public static void useAbility(Player player, KitData.Ability ability) {
+    public static void UseAbility(Player player, KitData.Ability ability) {
         HashMap<Player, Long> playerAbilityCooldown = ability.abilityNum == 1 ? playerAbility1Cooldown : playerAbility2Cooldown;
         playerAbilityCooldown.put(player, System.currentTimeMillis());
         player.sendMessage(ChatColor.GREEN + (ability.abilityNum == 1 ? "First" : "Second") + " activated!");
     }
 
-    public static boolean abilityIsUnderCooldown(Player player, int abilityNum) {
+    public static boolean AbilityIsUnderCooldown(Player player, int abilityNum) {
         String playerKitName = PlayerKitMap.get(player);
         KitData.Ability ability = KitWar.kitData.getKitAbility(playerKitName, abilityNum);
         long abilityCooldown = ability.cooldown;
@@ -111,36 +112,43 @@ public class GameLogic implements Listener {
         return false;
     }
 
-    public static boolean playerKitValidate(Player player, String kit) {
+    public static boolean PlayerKitValidate(Player player, String kit) {
         return PlayerKitMap.get(player).equalsIgnoreCase(kit);
     }
 
-    public static void equipKit(Player player, String kitName) {
+    public static void EquipKit(Player player, String kitName) {
         // clear player inventory and put them in the player kit mapping
         player.getInventory().clear();
+        KitData.Kit playerKit = KitWar.kitData.getKitByName(kitName);
+        if (playerKit != null) {
+            PlayerKitMap.put(player, kitName);
+            // give player proper items
+            List<ItemStack> equipment = Arrays.asList(
+                    KitWar.kitData.getKitEquipmentByName(kitName, 1),
+                    KitWar.kitData.getKitEquipmentByName(kitName, 2)
+            );
 
-        if (PlayerKitMap.get(player) != null) {
-            PlayerKitMap.remove(player);
+            int invSlot = 0;
+            for (ItemStack item : equipment) {
+                System.out.println(item);
+                player.getInventory().setItem(invSlot, item);
+                invSlot++;
+            }
+
+            // send player kit information
+            KitWar.PrintSeperatorLine(player, true);
+            player.sendMessage("Current Kit: " + ChatColor.AQUA + "" + ChatColor.BOLD + PlayerKitMap.get(player).toUpperCase());
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Passive: ");
+            player.sendMessage(playerKit.passiveDescription);
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Ability 1 (" + playerKit.getAbility(1).name + "): ");
+            player.sendMessage(playerKit.getAbility(1).description);
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD +"Ability 2 (" + playerKit.getAbility(2).name + "): ");
+            player.sendMessage(playerKit.getAbility(2).description);
+            KitWar.PrintSeperatorLine(player, false);
+            return;
         }
 
-        PlayerKitMap.put(player, kitName);
-
-        player.sendMessage("aight");
-
-        // give player proper items
-        List<ItemStack> equipment = Arrays.asList(
-                KitWar.kitData.getKitEquipmentByName(kitName, 1),
-                KitWar.kitData.getKitEquipmentByName(kitName, 2)
-        );
-
-        int invSlot = 0;
-        for (ItemStack item : equipment) {
-            System.out.println(item);
-            player.getInventory().setItem(invSlot, item);
-            invSlot++;
-        }
-
-        player.sendMessage("Current Kit: " + ChatColor.AQUA + "" + ChatColor.BOLD + PlayerKitMap.get(player).toUpperCase());
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: Internal server error on choosing kit.");
     }
 
     /////////////////////////////////
@@ -149,18 +157,19 @@ public class GameLogic implements Listener {
     //							   //
     /////////////////////////////////
 
-    public void sendAbilityCoolDownActionBar(Player player, KitData.Ability ability, long timeDelta, long cooldown) {
+    public void SendAbilityCoolDownActionBar(Player player, KitData.Ability ability, long timeDelta, long cooldown) {
         if (timeDelta >= cooldown) {
             String abilityReady = ChatColor.GREEN + "" + ChatColor.BOLD + ability.name + " READY";
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(abilityReady));
             return;
         }
 
-        String bar = "█";
+        String bar = "▋";
         String timeDeltaString = ChatColor.GREEN + "" + ChatColor.BOLD + String.format("%.1f", ((double) ((cooldown - timeDelta)/100)) / 10) + "s";
+        int totalBarCount = 20;
 
-        int greenBarCount = Math.abs(Math.round((float) timeDelta / (float) cooldown * 10));
-        int redBarCount = 10 - greenBarCount;
+        int greenBarCount = Math.abs(Math.round((float) timeDelta / (float) cooldown * totalBarCount));
+        int redBarCount = totalBarCount - greenBarCount;
 
         String greenBar = ChatColor.GREEN + new String(new char[greenBarCount]).replace("\0", bar);
         String redBar = "";
@@ -168,6 +177,7 @@ public class GameLogic implements Listener {
             redBar = ChatColor.RED + new String(new char[redBarCount]).replace("\0", bar);
         }
 
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(greenBar+redBar + "  " + timeDeltaString));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
+                ability.name + " " + greenBar + redBar + "  " + timeDeltaString));
     }
 }

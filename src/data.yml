@@ -5,14 +5,14 @@ kits:
   Boomer:
     name: Boomer
     abilities:
-      passive: Hitting an ability gives a chance to spawn a suicide bomb zombie that
-        follows target around.
+      passive: Any ability that hits 3 or more players summons a exploding zombie targets a random player hit.
+        Explosions slow enemies.
       ability1:
         name: Explosive Egg
         description: Eggs that instantly explodes when landing and instantly deals
           damage.
-        cooldown: 1500
-        damage: 4
+        cooldown: 3000
+        damage: 8
         equipment:
           v: 2567
           type: EGG
@@ -20,9 +20,13 @@ kits:
             ==: ItemMeta
             meta-type: UNSPECIFIC
             lore:
-              - Explosive Eggs
-              - Eggs that instantly explodes when landing and instantly deals damage.
-              - Deals 4 Hearts
+              -
+              - §6§lExplosive Eggs
+              - ▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+              -
+              - §fEggs that instantly explodes when landing and instantly deals damage.
+            enchants:
+              DAMAGE_ALL: 5
       ability2:
         name: Mega Bomb
         description: A TNT bomb that denotes after sometime, but it deals huge damage.
@@ -35,9 +39,13 @@ kits:
             ==: ItemMeta
             meta-type: UNSPECIFIC
             lore:
-              - Mega Bomb
-              - A TNT bomb that denotes after sometime, but it deals huge damage.
-              - Deals 10 Hearts
+              -
+              - §6§lMega TNT
+              - ▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+              -
+              - §fA TNT bomb that denotes after sometime, but it deals huge damage.
+            enchants:
+              KNOCKBACK: 2
   Electro:
     name: Electro
     abilities:
@@ -46,7 +54,7 @@ kits:
         name: Tesla Coil
         description: Summon a power tesla coil that repetitively hits all enemys with powerful lightning.
         cooldown: 6000
-        damage: 4
+        damage: 6
         equipment:
           v: 2567
           type: END_ROD
@@ -54,11 +62,15 @@ kits:
             ==: ItemMeta
             meta-type: UNSPECIFIC
             lore:
-              - Tesla Coil
-              - Summon a power tesla coil that repetitively hits all enemys with powerful lightning.
-              - Deals 4 Hearts
+              -
+              - §6§lTesla Coil
+              - ▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+              -
+              - §fSummon a power tesla coil that repetitively hits all enemys with powerful lightning.
+            enchants:
+              DAMAGE_ALL: 2
       ability2:
-        name: Stun Gun
+        name: Stunning Beam
         description: Shoots a beam that stuns any player hit.
         cooldown: 4000
         damage: 4
@@ -69,6 +81,10 @@ kits:
             ==: ItemMeta
             meta-type: UNSPECIFIC
             lore:
-              - Stun Gun
-              - Shoots a beam that stuns any player hit.
-              - Deals 4 Hearts
+              -
+              - §6§lStunning Beam
+              - ▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+              -
+              - §fShoots a beam that stuns any player hit.
+            enchants:
+              KNOCKBACK: 2
