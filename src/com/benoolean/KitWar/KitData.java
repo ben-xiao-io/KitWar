@@ -7,25 +7,19 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.logging.Level;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 
 public class KitData {
 
     private FileConfiguration dataConfig = null;
     private File configFile = null;
-    private KitWar plugin;
+    private final KitWar plugin;
 
-    class Ability {
+    static class Ability {
         public String name;
         public int abilityNum;
         public String description;
@@ -40,10 +34,14 @@ public class KitData {
             this.cooldown = cooldown;
             this.damage = damage;
             this.equipment = equipment;
+
+            if (name == null || (abilityNum != 1 && abilityNum != 2) || description == null || cooldown < 0 || damage < 0 || equipment == null) {
+                throw new NullPointerException();
+            }
         }
     }
 
-    class Kit {
+    static class Kit {
         public String name;
         public String passiveDescription;
 
@@ -52,7 +50,11 @@ public class KitData {
         public Kit(String name, String passiveDescription) {
             this.name = name;
             this.passiveDescription = passiveDescription;
-            this.abilities = new ArrayList<Ability>();
+            this.abilities = new ArrayList<>();
+
+            if (name == null || passiveDescription == null || abilities == null) {
+                throw new NullPointerException();
+            }
         }
 
         public Ability getAbility(int abilityNum) {
@@ -84,32 +86,27 @@ public class KitData {
 
                     // getting each kit configuration from yml
 
-                    // initializing kit
-                    Kit kit = new Kit(null, null);
-
-                    // getting kit name
-                    String name = this.getConfig().getString("kits." + kitName + ".name");
-
                     // configuring abilites and passive
                     ConfigurationSection abilities = this.getConfig().getConfigurationSection("kits." + kitName + ".abilities");
+                    assert abilities != null;
                     String passive = abilities.getString("passive");
-                    kit.passiveDescription = passive;
+
+                    // initializing kit
+                    Kit kit = new Kit(kitName, passive);
 
                     for (int abilityNum = 1; abilityNum<3; abilityNum++) {
                         ConfigurationSection abilityConfig = this.getConfig().getConfigurationSection(
-                                "kits." + kitName + ".abilities.ability" + Integer.toString(abilityNum));
+                                "kits." + kitName + ".abilities.ability" + abilityNum);
 
+                        assert abilityConfig != null;
                         String abilityName = abilityConfig.getString("name");
                         String description = abilityConfig.getString("description");
                         long cooldown = abilityConfig.getLong("cooldown");
                         long damage = abilityConfig.getLong("damage");
 
                         ConfigurationSection equipmentSection = abilityConfig.getConfigurationSection("equipment");
+                        assert equipmentSection != null;
                         ItemStack equipment = ItemStack.deserialize(equipmentSection.getValues(true));
-
-                        if (passive == null || abilityName == null || description == null || cooldown < 0 || damage < 0 || equipment == null ) {
-                            throw new NullPointerException();
-                        }
 
                         // initializing ability
                         Ability ability = new Ability(abilityName, abilityNum, description, cooldown, damage, equipment);
@@ -133,17 +130,7 @@ public class KitData {
         return kitMap.get(name);
     }
 
-    public Kit getPlayerKit(Player player) {
-        String kitName = GameLogic.PlayerKitMap.get(player);
-        if (kitName == null) {
-            return null;
-        }
-
-        return getKitByName(kitName);
-    }
-
     public ItemStack getKitEquipmentByName(String name, int abilityNum) {
-        Set<String> kitNames = kitMap.keySet();
         Kit kit = getKitByName(name);
         if (kit == null) {
             return null;
@@ -153,7 +140,6 @@ public class KitData {
     }
 
     public Ability getKitAbility(String name, int abilityNum) {
-        Set<String> kitNames = kitMap.keySet();
         Kit kit = getKitByName(name);
         if (kit == null) {
             return null;

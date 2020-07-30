@@ -1,8 +1,7 @@
 package com.benoolean.KitWar;
-import java.util.HashMap;
 import java.util.Set;
 
-import net.minecraft.server.v1_16_R1.ChatMessage;
+import com.sun.istack.internal.NotNull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,11 +16,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class KitWar extends JavaPlugin implements Listener {
-
-    // player list
-    public static HashMap<Player, Integer> PlayerScoreMap = new HashMap<Player, Integer>();
-    public static HashMap<Player, String> TeamMap = new HashMap<Player, String>();
-    public static HashMap<Player, Integer> TeamScoreMap = new HashMap<Player, Integer>();
 
     public static KitData kitData;
 
@@ -43,6 +37,7 @@ public class KitWar extends JavaPlugin implements Listener {
     public void onDisable() {
 
     }
+
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (label.equalsIgnoreCase("kit")) {

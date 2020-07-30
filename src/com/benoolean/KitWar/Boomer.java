@@ -1,6 +1,7 @@
 package com.benoolean.KitWar;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -28,12 +29,22 @@ import org.bukkit.util.Vector;
 
 public class Boomer implements Listener {
 
-    private static String kitName = "Boomer";
-    private KitWar plugin = KitWar.getInstance();
-    private KitData kitData = KitWar.kitData;
+    private static final String kitName = "Boomer";
 
-    private KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
-    private KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
+    private final KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
+    private final KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
+
+//    // ability click
+//    @EventHandler
+//    public void BoomerMouseClickEvent(PlayerInteractEvent event) {
+//        Player player = event.getPlayer();
+//        if (GameLogic.PlayerKitValidate(player, kitName)) {
+//            if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+//                int activeSlot = player.getInventory().getHeldItemSlot();
+//                KitData.Ability ability =
+//            }
+//        }
+//    }
 
 
     @EventHandler
@@ -43,8 +54,8 @@ public class Boomer implements Listener {
             if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
                 if (player.getInventory().getItemInMainHand().getType() == Material.EGG) {
 
-                    GameLogic.AttemptAbility(player, this.ability1, GameLogic.AbilityIsUnderCooldown(player, 1));
-                    String test = GameLogic.AbilityIsUnderCooldown(player, 1) ? "true" : "false";
+                    GameLogic.AttemptAbility(player, this.ability1, GameLogic.AbilityIsUnderCooldown(player, this.ability1));
+                    String test = GameLogic.AbilityIsUnderCooldown(player, this.ability1) ? "true" : "false";
                     player.sendMessage(test);
                 }
             }
@@ -69,8 +80,6 @@ public class Boomer implements Listener {
                 }
             }
         }
-
-        return;
     }
 
     @EventHandler
@@ -84,7 +93,7 @@ public class Boomer implements Listener {
                 Location blockLoc = block.getLocation();
 
                 SpawnTnt(player,blockLoc, 40, this.ability2.damage);
-                GameLogic.AttemptAbility(player, this.ability2, GameLogic.AbilityIsUnderCooldown(player, 2));
+                GameLogic.AttemptAbility(player, this.ability2, GameLogic.AbilityIsUnderCooldown(player, this.ability2));
             }
         }
     }
@@ -95,7 +104,7 @@ public class Boomer implements Listener {
         tnt.setCustomNameVisible(true);
 
         new BukkitRunnable() {
-            double ticks = (double) tntTicks;
+            double ticks = tntTicks;
 
             @Override
             public void run() {
@@ -121,7 +130,7 @@ public class Boomer implements Listener {
         final Zombie zombie = (Zombie) victim.getWorld().spawnEntity(victim.getLocation(), EntityType.ZOMBIE);
 
         zombie.setTarget(victim);
-        zombie.getEquipment().setHelmet(new ItemStack(Material.GOLDEN_HELMET, 1));
+        Objects.requireNonNull(zombie.getEquipment()).setHelmet(new ItemStack(Material.GOLDEN_HELMET, 1));
         zombie.getEquipment().setItemInMainHand(new ItemStack(Material.TNT, 1));
         zombie.setHealth(1F);
         zombie.setBaby(true);
@@ -131,7 +140,7 @@ public class Boomer implements Listener {
         zombie.setCustomNameVisible(true);
 
         new BukkitRunnable() {
-            double ticks = (double) tntTicks;
+            double ticks = tntTicks;
 
             @Override
             public void run() {
@@ -181,7 +190,7 @@ public class Boomer implements Listener {
                 Vector launchVector = new Vector(launchVelocityX, 0, launchVelocityZ).normalize().multiply(velocityMultiplier);
                 launchVector.normalize().multiply(velocityMultiplier);
                 launchVector.setY(0.8F);
-                victim.sendMessage(Double.toString(launchVelocityX) + "    " + Double.toString(launchVelocityZ));
+                victim.sendMessage(launchVelocityX + "    " + launchVelocityZ);
 
                 victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 1));
                 victim.damage(tntDamage, player);
