@@ -11,10 +11,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Score;
 
 public class GameLogic implements Listener {
 
@@ -38,6 +41,18 @@ public class GameLogic implements Listener {
     public void cancelPlayerDropItemEvent(PlayerDropItemEvent event) {
         event.setCancelled(true);
     }
+
+    @EventHandler
+    public void cancelOpenInventoryEvent(InventoryOpenEvent event) { event.setCancelled(true); }
+
+    @EventHandler
+    public void cancelClickInventoryEvent(InventoryClickEvent event) { event.setCancelled(true); }
+
+    @EventHandler
+    public void cancelMoveInventoryEvent(InventoryDragEvent event) { event.setCancelled(true); }
+
+    @EventHandler
+    public void cancelPickupItemEvent(EntityPickupItemEvent event) { event.setCancelled(true); }
 
 
     /////////////////////////////////
@@ -71,7 +86,8 @@ public class GameLogic implements Listener {
         }.runTaskTimerAsynchronously(plugin, 0,2);
     }
 
-    public static boolean AttemptAbility(Player player, KitData.Ability ability, boolean abilityIsUnderCoolDown) {
+    public static boolean AttemptAbility(Player player, KitData.Ability ability) {
+        TeamScoreLogic.ScoreboardSet(player);
         playerLastAttemptedAbility.put(player, ability);
 
         if (!AbilityIsUnderCooldown(player, ability)) {
@@ -84,7 +100,7 @@ public class GameLogic implements Listener {
     public static boolean UseAbility(Player player, KitData.Ability ability) {
         HashMap<Player, Long> playerAbilityCooldown = ability.abilityNum == 1 ? playerAbility1Cooldown : playerAbility2Cooldown;
         playerAbilityCooldown.put(player, System.currentTimeMillis());
-        player.sendMessage(ChatColor.GREEN + (ability.abilityNum == 1 ? "First" : "Second") + " activated!");
+        player.sendMessage(ChatColor.GREEN + ability.name + " activated!");
 
         return true;
     }
@@ -102,7 +118,7 @@ public class GameLogic implements Listener {
 
         long timeLeft = ((playerAbilityCooldown.get(player) - System.currentTimeMillis() + ability.cooldown));
         if (timeLeft > 0) {
-            player.sendMessage(ChatColor.GOLD + (ability.abilityNum == 1 ? "First" : "Second") + " ability under cooldown.");
+            player.sendMessage(ChatColor.GOLD + ability.name + " under cooldown.");
             player.sendMessage(ChatColor.RED + "" + "▶  Remaing time: " + ChatColor.GOLD + "" + ChatColor.BOLD + String.format("%.1f", ((double)timeLeft) / 1000) + " sec");
             return true;
         }
@@ -116,38 +132,46 @@ public class GameLogic implements Listener {
     }
 
     public static void EquipKit(Player player, String kitName) {
-        // clear player inventory and put them in the player kit mapping
-        player.getInventory().clear();
-        KitData.Kit playerKit = KitWar.kitData.getKitByName(kitName);
-        if (playerKit != null) {
-            PlayerKitMap.put(player, playerKit);
-            System.out.println("=====" + playerKit);
-            // give player proper items
-            List<ItemStack> equipment = Arrays.asList(
-                    KitWar.kitData.getKitEquipmentByName(kitName, 1),
-                    KitWar.kitData.getKitEquipmentByName(kitName, 2)
-            );
+        if (KitWar.kitData.kitNameExists(kitName)) {
 
-            int invSlot = 0;
-            for (ItemStack item : equipment) {
-                player.getInventory().setItem(invSlot, item);
-                invSlot++;
+
+            // clear player inventory and put them in the player kit mapping
+            player.getInventory().clear();
+            KitData.Kit playerKit = KitWar.kitData.getKitByName(kitName);
+            if (playerKit != null) {
+                PlayerKitMap.put(player, playerKit);
+                System.out.println("=====" + playerKit);
+                // give player proper items
+                List<ItemStack> equipment = Arrays.asList(
+                        KitWar.kitData.getKitEquipmentByName(kitName, 1),
+                        KitWar.kitData.getKitEquipmentByName(kitName, 2)
+                );
+
+                int invSlot = 0;
+                for (ItemStack item : equipment) {
+                    player.getInventory().setItem(invSlot, item);
+                    invSlot++;
+                }
+
+                // send player kit information
+                KitWar.PrintSeperatorLine(player, true);
+                player.sendMessage("Current Kit: " + ChatColor.AQUA + "" + ChatColor.BOLD + PlayerKitMap.get(player).name.toUpperCase());
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Passive: ");
+                player.sendMessage(playerKit.passiveDescription);
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Ability 1 (" + playerKit.getAbility(1).name + "): ");
+                player.sendMessage(playerKit.getAbility(1).description);
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Ability 2 (" + playerKit.getAbility(2).name + "): ");
+                player.sendMessage(playerKit.getAbility(2).description);
+                KitWar.PrintSeperatorLine(player, false);
+                return;
             }
 
-            // send player kit information
-            KitWar.PrintSeperatorLine(player, true);
-            player.sendMessage("Current Kit: " + ChatColor.AQUA + "" + ChatColor.BOLD + PlayerKitMap.get(player).name.toUpperCase());
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Passive: ");
-            player.sendMessage(playerKit.passiveDescription);
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Ability 1 (" + playerKit.getAbility(1).name + "): ");
-            player.sendMessage(playerKit.getAbility(1).description);
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD +"Ability 2 (" + playerKit.getAbility(2).name + "): ");
-            player.sendMessage(playerKit.getAbility(2).description);
-            KitWar.PrintSeperatorLine(player, false);
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: Internal server error on choosing kit.");
             return;
         }
 
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: Internal server error on choosing kit.");
+        kitName = ChatColor.RESET + "" + ChatColor.GOLD + kitName + ChatColor.RED + "" + ChatColor.BOLD;
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: Kit " + kitName + " doesn't exist!");
     }
 
     /////////////////////////////////

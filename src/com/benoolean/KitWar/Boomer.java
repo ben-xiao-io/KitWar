@@ -5,16 +5,10 @@ import java.util.Objects;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Egg;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
-import org.bukkit.entity.Zombie;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -34,29 +28,45 @@ public class Boomer implements Listener {
     private final KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
     private final KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
 
-//    // ability click
-//    @EventHandler
-//    public void BoomerMouseClickEvent(PlayerInteractEvent event) {
-//        Player player = event.getPlayer();
-//        if (GameLogic.PlayerKitValidate(player, kitName)) {
-//            if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-//                int activeSlot = player.getInventory().getHeldItemSlot();
-//                KitData.Ability ability =
-//            }
-//        }
-//    }
+    public void AbilityActivateInit(Player player, KitData.Ability ability, PlayerInteractEvent event) {
+        if (ability.abilityNum == 1){
+            // spawn egg with velocity
+            if (GameLogic.AttemptAbility(player, ability)) {
+                Location playerLoc = player.getLocation();
+                Vector playerLookVector = playerLoc.getDirection().normalize();
+                playerLoc.add(playerLookVector.getX()*0.3,playerLookVector.getY()*0.3,playerLookVector.getZ()*0.3);
+                final Egg egg = (Egg) player.getWorld().spawnEntity(playerLoc.add(0,1.7,0), EntityType.EGG);
+                egg.setShooter(player);
+                egg.setVelocity(playerLookVector.multiply(3F));
+            }
+        }
+        else if (ability.abilityNum == 2) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                Block block = player.getTargetBlock(null, 5);
+                if (block.getType() != Material.AIR) {
+                    if (GameLogic.AttemptAbility(player, ability)) {
+                        Location blockLoc = block.getLocation().add(0,1,0);
+                        SpawnTnt(player,blockLoc, 40, this.ability2.damage);
+                    }
+                }
+            }
+        }
+        else {
+            throw new NullPointerException();
+        }
+    }
 
-
+    // ability click
     @EventHandler
-    public void EggBombThrow(PlayerInteractEvent event) {
+    public void BoomerMouseClickEvent(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (GameLogic.PlayerKitValidate(player, kitName)) {
-            if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-                if (player.getInventory().getItemInMainHand().getType() == Material.EGG) {
-
-                    GameLogic.AttemptAbility(player, this.ability1, GameLogic.AbilityIsUnderCooldown(player, this.ability1));
-                    String test = GameLogic.AbilityIsUnderCooldown(player, this.ability1) ? "true" : "false";
-                    player.sendMessage(test);
+            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                int activeSlot = player.getInventory().getHeldItemSlot();
+                KitData.Ability ability = (activeSlot == 0) ? ability1 : ((activeSlot == 1) ? ability2 : null);
+                if (ability != null) {
+                    AbilityActivateInit(player, ability, event);
+                    event.setCancelled(true);
                 }
             }
         }
@@ -78,22 +88,6 @@ public class Boomer implements Listener {
 
                     Explode(player, egg, 3F, ability1.damage);
                 }
-            }
-        }
-    }
-
-    @EventHandler
-    public void TntPlace(BlockPlaceEvent event) {
-        Block block = event.getBlock();
-        Player player = event.getPlayer();
-
-        if (GameLogic.PlayerKitValidate(player, kitName)) {
-            if (block.getType() == Material.TNT) {
-                block.setType(Material.AIR);
-                Location blockLoc = block.getLocation();
-
-                SpawnTnt(player,blockLoc, 40, this.ability2.damage);
-                GameLogic.AttemptAbility(player, this.ability2, GameLogic.AbilityIsUnderCooldown(player, this.ability2));
             }
         }
     }
@@ -200,7 +194,7 @@ public class Boomer implements Listener {
                 }
 
                  playerHit++;
-                 if (playerHit >= 3 || true) {
+                 if (playerHit >= 3) {
                     SpawnTntZombiePassive(player, victim, 60, 3F);
                  }
             }

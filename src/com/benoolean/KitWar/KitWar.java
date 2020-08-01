@@ -1,7 +1,6 @@
 package com.benoolean.KitWar;
 import java.util.Set;
 
-import com.sun.istack.internal.NotNull;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,56 +28,20 @@ public class KitWar extends JavaPlugin implements Listener {
         instance = this;
 
         this.getServer().getPluginManager().registerEvents(new GameLogic(), this);
+        this.getServer().getPluginManager().registerEvents(new TeamScoreLogic(), this);
         this.getServer().getPluginManager().registerEvents(new Boomer(), this);
         this.getServer().getPluginManager().registerEvents(new Electro(), this);
+
+        this.getCommand("kit").setExecutor(new CommandHandler());
+        this.getCommand("kit").setTabCompleter(new TabCompleteHandler());
+        this.getCommand("team").setExecutor(new CommandHandler());
+        this.getCommand("team").setTabCompleter(new TabCompleteHandler());
     }
 
     @Override
     public void onDisable() {
 
     }
-
-
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (label.equalsIgnoreCase("kit")) {
-            if (sender instanceof Player) {
-
-                Player player = (Player) sender;
-
-                if (args.length == 0) {
-                    ChatClear(player);
-
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Choose a kit!");
-                    Set<String> kitNames = kitData.kitMap.keySet();
-
-                    PrintSeperatorLine(player, true);
-                    for (String kitName: kitNames) {
-                        TextComponent messageKit = new TextComponent("▶  " + kitName + "  ◀");
-                        messageKit.setColor(ChatColor.GOLD);
-                        messageKit.setBold(true);
-                        messageKit.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kit " + kitName));
-                        messageKit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to get the " + kitName.toUpperCase() +" kit")));
-                        player.spigot().sendMessage(messageKit);
-                    }
-                    PrintSeperatorLine(player, false);
-                }
-                else if (args.length == 1) {
-                    String kitArg = args[0];
-
-                    if (kitData.kitNameExists(kitArg)) {
-                        GameLogic.EquipKit(player, kitArg);
-                    }
-                }
-            }
-            else {
-                sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Console working!");
-                return true;
-            }
-        }
-
-        return false;
-    }
-
 
 
     /////////////////////////////////

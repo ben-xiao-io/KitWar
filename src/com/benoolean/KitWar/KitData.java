@@ -1,11 +1,9 @@
 package com.benoolean.KitWar;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.logging.Level;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -52,7 +50,7 @@ public class KitData {
             this.passiveDescription = passiveDescription;
             this.abilities = new ArrayList<>();
 
-            if (name == null || passiveDescription == null || abilities == null) {
+            if (name == null || passiveDescription == null) {
                 throw new NullPointerException();
             }
         }
@@ -169,17 +167,18 @@ public class KitData {
         return dataConfig;
     }
 
-    public void saveConfig() {
-        if (dataConfig == null || configFile == null) {
-            return;
-        }
-
-        try {
-            getConfig().save(configFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save config file to: " + configFile, e);
-        }
-    }
+    // used for saving config when setting it
+    //public void saveConfig() {
+    //    if (dataConfig == null || configFile == null) {
+    //        return;
+    //    }
+    //
+    //    try {
+    //        getConfig().save(configFile);
+    //    } catch (IOException e) {
+    //        plugin.getLogger().log(Level.SEVERE, "Could not save config file to: " + configFile, e);
+    //    }
+    //}
 
     public void saveDefaultConfig() {
         if (configFile == null) {

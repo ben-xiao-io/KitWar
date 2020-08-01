@@ -9,10 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -29,12 +26,32 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Electro implements Listener {
 
-    private static String kitName = "Electro";
-    private KitWar plugin = KitWar.getInstance();
-    private KitData kitData = KitWar.kitData;
+    private static final String kitName = "Boomer";
 
-    private KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
-    private KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
+    private final KitData.Ability ability1 = KitWar.kitData.getKitAbility(kitName, 1);
+    private final KitData.Ability ability2 = KitWar.kitData.getKitAbility(kitName, 2);
+
+    public void AbilityActivateInit(Player player, KitData.Ability ability, PlayerInteractEvent event) {
+        if (ability.abilityNum == 1){
+            // spawn egg with velocity
+            if (GameLogic.AttemptAbility(player, ability)) {
+
+            }
+        }
+        else if (ability.abilityNum == 2) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                Block block = player.getTargetBlock(null, 5);
+                if (block.getType() != Material.AIR) {
+                    if (GameLogic.AttemptAbility(player, ability)) {
+
+                    }
+                }
+            }
+        }
+        else {
+            throw new NullPointerException();
+        }
+    }
 
     @EventHandler
     public void zapClick(PlayerInteractEvent event) {
