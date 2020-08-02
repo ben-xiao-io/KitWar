@@ -1,23 +1,27 @@
 package com.benoolean.KitWar;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ItemMergeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Score;
+import org.bukkit.util.Vector;
 
 public class GameLogic implements Listener {
 
@@ -53,6 +57,9 @@ public class GameLogic implements Listener {
 
     @EventHandler
     public void cancelPickupItemEvent(EntityPickupItemEvent event) { event.setCancelled(true); }
+
+    @EventHandler
+    public void cancelMergeDropItemEvent(ItemMergeEvent event) { event.setCancelled(true); }
 
 
     /////////////////////////////////
@@ -202,5 +209,44 @@ public class GameLogic implements Listener {
 
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
                 ability.name + " " + greenBar + redBar + "  " + timeDeltaString));
+    }
+
+    /////////////////////////////////
+    // 							   //
+    //    Player Death Handling    //
+    //							   //
+    /////////////////////////////////
+
+    @EventHandler
+    public void PlayerDeathEvent(PlayerDeathEvent event) {
+        Player victim = event.getEntity();
+        Player killer =  victim.getKiller();
+
+        // death message
+        event.setDeathMessage("");
+        Bukkit.broadcastMessage((killer == null ? victim : killer).getDisplayName() + "" + ChatColor.YELLOW + " has slaughtered " + victim.getDisplayName());
+
+        // play death animation
+        List<Item> bloodSpray = new ArrayList<>();
+        for (int bloodCount = 0; bloodCount <= 20; bloodCount++) {
+            Item blood = victim.getWorld().dropItemNaturally(victim.getLocation(), new ItemStack(Material.RED_DYE, 1));
+
+            double max = 100F;
+            double min = -100F;
+            double velocityX = ((Math.random() * ((max - min) + 1)) + min) / 1000;
+            double velocityZ = ((Math.random() * ((max - min) + 1)) + min) / 1000;
+            blood.setVelocity(new Vector(velocityX, 0.3, velocityZ));
+            bloodSpray.add(blood);
+        }
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Item blood : bloodSpray) {
+                    blood.remove();
+                }
+                cancel();
+            }
+        }.runTaskTimerAsynchronously(KitWar.getInstance(), 40, 1);
     }
 }

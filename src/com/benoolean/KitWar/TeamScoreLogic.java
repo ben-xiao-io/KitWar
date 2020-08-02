@@ -40,7 +40,6 @@ public class TeamScoreLogic implements Listener {
     public static  Team playerKillCount =  scoreboard.registerNewTeam("Kills");
     public static  Team playerDeathCount =  scoreboard.registerNewTeam("Deaths");
     public static  Team playerScore =  scoreboard.registerNewTeam("Score");
-    public static  Team nextObjectiveCountdown =  scoreboard.registerNewTeam("NextObjective");
 
 
     public TeamScoreLogic() {
@@ -54,53 +53,58 @@ public class TeamScoreLogic implements Listener {
 
         // team init
         teamRed.setPrefix(ChatColor.RED + "" + ChatColor.BOLD + "RED " + ChatColor.RESET);
-        teamRed.setAllowFriendlyFire(false);
 
         teamBlue.setPrefix(ChatColor.AQUA + "" + ChatColor.BOLD + "BLUE " + ChatColor.RESET);
-        teamBlue.setAllowFriendlyFire(false);
 
         // setting default empty scoreboard
         for (int scoreboardIndex = 1; scoreboardIndex <= 14; scoreboardIndex++) {
-            playerKillCount.addEntry("Kills : " + ChatColor.GREEN);
-            playerKillCount.setSuffix("");
+            playerKillCount.addEntry("Kills: " + ChatColor.GREEN);
+            playerKillCount.setSuffix("0");
             playerKillCount.setPrefix("");
 
-            objective.getScore("Kills : " + ChatColor.GREEN).setScore(0);
+            playerDeathCount.addEntry("Deaths: " + ChatColor.GREEN);
+            playerDeathCount.setSuffix("0");
+            playerDeathCount.setPrefix("");
 
+            playerScore.addEntry("Score: " + ChatColor.GREEN);
+            playerScore.setSuffix("0");
+            playerScore.setPrefix("");
+
+            Score score;
 
             // first bar
-//            if (scoreboardIndex == 14) {
-//                score = objective.getScore(new String(new char[15]).replace("\0", "▅"));
-//            }
-//            else if (scoreboardIndex == 12) {
-//                score = objective.getScore("Author: " + ChatColor.GREEN + "benoolean");
-//            }
-//            else if (scoreboardIndex == 10) {
-//                score = playerKillCountScoreboard;
-//            }
-//            else if (scoreboardIndex == 9) {
-//                score = playerScoreScoreboard;
-//            }
-//            else if (scoreboardIndex == 8) {
-//                score = teamScoreScoreboard;
-//            }
-//            else if (scoreboardIndex == 4) {
-//                score = objective.getScore(ChatColor.GREEN + "Support me by following my");
-//            }
-//            else if (scoreboardIndex == 3) {
-//                score = objective.getScore(ChatColor.GREEN + "Github or visit my website.");
-//            }
-//            else if (scoreboardIndex == 2) {
-//                score = objective.getScore(ChatColor.GREEN + "More information at:");
-//            }
-//            else if (scoreboardIndex == 1) {
-//                score = objective.getScore(ChatColor.GOLD + "" + ChatColor.BOLD + "www.benoolean.com");
-//            }
-//            else {
-//                score = objective.getScore(new String(new char[scoreboardIndex]).replace("\0", " "));
-//            }
-//
-//            score.setScore(scoreboardIndex);
+            if (scoreboardIndex == 14) {
+                score = objective.getScore(new String(new char[15]).replace("\0", "▅"));
+            }
+            else if (scoreboardIndex == 12) {
+                score = objective.getScore("Author: " + ChatColor.GREEN + "benoolean");
+            }
+            else if (scoreboardIndex == 10) {
+                score = objective.getScore("Kills: " + ChatColor.GREEN);
+            }
+            else if (scoreboardIndex == 9) {
+                score = objective.getScore("Deaths: " + ChatColor.GREEN);
+            }
+            else if (scoreboardIndex == 8) {
+                score = objective.getScore("Score: " + ChatColor.GREEN);
+            }
+            else if (scoreboardIndex == 4) {
+                score = objective.getScore(ChatColor.GREEN + "Support me by following my");
+            }
+            else if (scoreboardIndex == 3) {
+                score = objective.getScore(ChatColor.GREEN + "Github or visit my website.");
+            }
+            else if (scoreboardIndex == 2) {
+                score = objective.getScore(ChatColor.GREEN + "More information at:");
+            }
+            else if (scoreboardIndex == 1) {
+                score = objective.getScore(ChatColor.GOLD + "" + ChatColor.BOLD + "www.benoolean.com");
+            }
+            else {
+                score = objective.getScore(new String(new char[scoreboardIndex]).replace("\0", " "));
+            }
+
+            score.setScore(scoreboardIndex);
         }
     }
 
@@ -130,16 +134,19 @@ public class TeamScoreLogic implements Listener {
                 teamBlue.removeEntry(player.getName());
                 teamNone.removeEntry(player.getName());
                 teamRed.addEntry(player.getName());
+                player.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "RED " + ChatColor.RESET + player.getName());
             }
             else if (teamName.equalsIgnoreCase("Blue")){
                 teamRed.removeEntry(player.getName());
                 teamNone.removeEntry(player.getName());
                 teamBlue.addEntry(player.getName());
+                player.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "BLUE " + ChatColor.RESET + player.getName());
             }
             else {
                 teamRed.removeEntry(player.getName());
                 teamBlue.removeEntry(player.getName());
                 teamNone.addEntry(player.getName());
+                player.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "No Team " + ChatColor.RESET + player.getName());
             }
 
             player.setScoreboard(TeamScoreLogic.scoreboard);

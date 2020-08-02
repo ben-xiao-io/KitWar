@@ -184,7 +184,6 @@ public class Boomer implements Listener {
                 Vector launchVector = new Vector(launchVelocityX, 0, launchVelocityZ).normalize().multiply(velocityMultiplier);
                 launchVector.normalize().multiply(velocityMultiplier);
                 launchVector.setY(0.8F);
-                victim.sendMessage(launchVelocityX + "    " + launchVelocityZ);
 
                 victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 1));
                 victim.damage(tntDamage, player);
