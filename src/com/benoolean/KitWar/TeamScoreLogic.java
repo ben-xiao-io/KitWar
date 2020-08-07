@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scoreboard.*;
 
 import java.util.HashMap;
+import java.util.Set;
 
 public class TeamScoreLogic implements Listener {
 
@@ -37,39 +38,23 @@ public class TeamScoreLogic implements Listener {
     public static Team teamBlue = scoreboard.registerNewTeam("Blue");
     public static Team teamNone = scoreboard.registerNewTeam("No Team");
 
-    public static  Team playerKillCount =  scoreboard.registerNewTeam("Kills");
-    public static  Team playerDeathCount =  scoreboard.registerNewTeam("Deaths");
-    public static  Team playerScore =  scoreboard.registerNewTeam("Score");
-
-
     public TeamScoreLogic() {
         KitWar plugin = KitWar.getInstance();
 
         TeamMap.put("Red", new KitTeam("Red", ChatColor.RED));
         TeamMap.put("Blue", new KitTeam("Blue", ChatColor.AQUA));
+        TeamMap.put("No Team", new KitTeam("No Team", ChatColor.GRAY));
 
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         objective.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Game Information");
 
         // team init
         teamRed.setPrefix(ChatColor.RED + "" + ChatColor.BOLD + "RED " + ChatColor.RESET);
-
         teamBlue.setPrefix(ChatColor.AQUA + "" + ChatColor.BOLD + "BLUE " + ChatColor.RESET);
+        teamNone.setPrefix(ChatColor.GRAY + "" + ChatColor.BOLD + "No Team " + ChatColor.RESET);
 
         // setting default empty scoreboard
         for (int scoreboardIndex = 1; scoreboardIndex <= 14; scoreboardIndex++) {
-            playerKillCount.addEntry("Kills: " + ChatColor.GREEN);
-            playerKillCount.setSuffix("0");
-            playerKillCount.setPrefix("");
-
-            playerDeathCount.addEntry("Deaths: " + ChatColor.GREEN);
-            playerDeathCount.setSuffix("0");
-            playerDeathCount.setPrefix("");
-
-            playerScore.addEntry("Score: " + ChatColor.GREEN);
-            playerScore.setSuffix("0");
-            playerScore.setPrefix("");
-
             Score score;
 
             // first bar
@@ -118,16 +103,14 @@ public class TeamScoreLogic implements Listener {
     @EventHandler
     public void PlayerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        player.setScoreboard(this.scoreboard);
-
-        teamNone.addEntry(player.getName());
-        ScoreboardSet(player);
+        JoinTeam(player, "No Team");
     }
 
     public static void JoinTeam(Player player, String teamName) {
         if (TeamScoreLogic.TeamMap.get(teamName) != null) {
             PlayerTeamMap.put(player, TeamMap.get(teamName));
             PlayerScoreMap.put(player, 0);
+            PlayerKillCountMap.put(player, 0);
             player.setScoreboard(TeamScoreLogic.scoreboard);
 
             if (teamName.equalsIgnoreCase("Red")) {
@@ -149,6 +132,24 @@ public class TeamScoreLogic implements Listener {
                 player.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "No Team " + ChatColor.RESET + player.getName());
             }
 
+            player.sendMessage("You are now on team: " + teamName);
+
+            Team playerKillCount =  PlayerRegisterScore(player, "Kills");
+            Team playerDeathCount =  PlayerRegisterScore(player, "Deaths");
+            Team playerScore =  PlayerRegisterScore(player, "Score");
+
+            playerKillCount.addEntry("Kills: " + ChatColor.GREEN);
+            playerKillCount.setSuffix("0");
+            playerKillCount.setPrefix("");
+
+            playerDeathCount.addEntry("Deaths: " + ChatColor.GREEN);
+            playerDeathCount.setSuffix("0");
+            playerDeathCount.setPrefix("");
+
+            playerScore.addEntry("Score: " + ChatColor.GREEN);
+            playerScore.setSuffix("0");
+            playerScore.setPrefix("");
+
             player.setScoreboard(TeamScoreLogic.scoreboard);
         }
     }
@@ -160,7 +161,31 @@ public class TeamScoreLogic implements Listener {
     /////////////////////////////////
 
     public static void ScoreboardSet(Player player) {
-        teamNone.setPrefix(ChatColor.GRAY + "" + ChatColor.BOLD + "No Team " + ChatColor.RESET);
-        playerKillCount.setSuffix(System.currentTimeMillis() + "");
+        PlayerSetScore(player, "Kills");
+    }
+
+    /////////////////////////////////
+    // 							   //
+    //            Misc             //
+    //							   //
+    /////////////////////////////////
+
+    public static void PlayerSetScore(Player player, String score) {
+        String hashedPlayerScoreKey = (player.getName() + score).hashCode() + "";
+        Team playerKills =  scoreboard.getTeam(hashedPlayerScoreKey);
+
+        int playerKillCount = (PlayerKillCountMap.get(player) != null) ? PlayerKillCountMap.get(player) : 0;
+        playerKills.setSuffix(Integer.toString(playerKillCount + 1));
+
+        PlayerKillCountMap.put(player, playerKillCount + 1);
+    }
+
+    public static Team PlayerRegisterScore(Player player, String score) {
+        String hashedPlayerScoreKey = (player.getName() + score).hashCode() + "";
+        if (scoreboard.getTeam(hashedPlayerScoreKey) == null) {
+            return scoreboard.registerNewTeam(hashedPlayerScoreKey);
+        }
+
+        return scoreboard.getTeam(hashedPlayerScoreKey);
     }
 }
